@@ -1,0 +1,13 @@
+.entity-exorcist-category + .entity-exorcist-category {
+	margin-block-start: 0.25rem;
+}
+
+.entity-exorcist-category > summary {
+	padding: 0.45rem 0.25rem;
+	border-block-end: 1px solid var(--frss-border-color, currentColor);
+	cursor: pointer;
+}
+
+.entity-exorcist-category-feeds {
+	padding-inline-start: 1.25rem;
+}

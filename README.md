@@ -26,7 +26,7 @@ To update a Git installation, run `git -C xExtension-EntityExorcist pull --ff-on
 ## Configuration
 
 1. Open **Configuration → Extensions**, enable **Entity Exorcist**, and open its settings.
-2. Under **Feeds to repair**, select the subscriptions you want to process and save. Each FreshRSS user has their own selection, which starts empty. Clear all checkboxes and save to stop processing.
+2. Under **Feeds to repair**, expand your FreshRSS categories, select the subscriptions you want to process, and save. Each category shows its number of feeds. Categories with previously selected feeds open automatically. Each FreshRSS user has their own selection, which starts empty. Clear all checkboxes and save to stop processing.
 
 The settings list each subscription by name and ID. If you delete and resubscribe to a feed, select it again because it gets a new ID. Saving discards IDs of deleted feeds. Review the selection after restoring a database with different feed IDs.
 

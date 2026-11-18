@@ -7,18 +7,35 @@
 		<input type="hidden" name="_csrf" value="<?= FreshRSS_Auth::csrfToken() ?>" />
 		<fieldset>
 			<legend>Feeds to repair</legend>
-			<?php if ($this->feeds === []): ?>
+			<?php if ($this->categories === []): ?>
 				<p>Add a subscription to make it available here.</p>
 			<?php else: ?>
+				<link rel="stylesheet" href="<?= $this->getFileUrl('feed-categories.css') ?>" />
 				<p>Choose the feeds whose new article titles should be repaired.</p>
-				<?php foreach ($this->feeds as $id => $feed): ?>
-					<div>
-						<label class="checkbox">
-							<input type="checkbox" name="entity_exorcist_feeds[]" value="<?= $id ?>"<?= in_array($id, $settings['feed_ids'], true) ? ' checked' : '' ?> />
-							<?= htmlspecialchars(htmlspecialchars_decode($feed->name(), ENT_QUOTES), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>
-							(#<?= $id ?>)
-						</label>
-					</div>
+				<?php foreach ($this->categories as $category):
+					$feeds = $category->feeds();
+					$feedIds = array_map(static fn (FreshRSS_Feed $feed): int => $feed->id(), $feeds);
+					$isOpen = array_intersect($feedIds, $settings['feed_ids']) !== [];
+					?>
+					<details class="entity-exorcist-category"<?= $isOpen ? ' open' : '' ?>>
+						<summary>
+							<?= htmlspecialchars(htmlspecialchars_decode($category->name(), ENT_QUOTES), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>
+							<small>(<?= count($feeds) ?>)</small>
+						</summary>
+						<div class="entity-exorcist-category-feeds">
+							<?php foreach ($feeds as $feed):
+								$id = $feed->id();
+								?>
+								<div>
+									<label class="checkbox">
+										<input type="checkbox" name="entity_exorcist_feeds[]" value="<?= $id ?>"<?= in_array($id, $settings['feed_ids'], true) ? ' checked' : '' ?> />
+										<?= htmlspecialchars(htmlspecialchars_decode($feed->name(), ENT_QUOTES), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>
+										(#<?= $id ?>)
+									</label>
+								</div>
+							<?php endforeach; ?>
+						</div>
+					</details>
 				<?php endforeach; ?>
 			<?php endif; ?>
 		</fieldset>

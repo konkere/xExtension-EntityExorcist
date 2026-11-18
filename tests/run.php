@@ -73,15 +73,20 @@ register_shutdown_function(static function () use ($scratch, &$checkSavedSetting
 	$categoryDao = FreshRSS_Factory::createCategoryDao();
 	$categoryId = $categoryDao->addCategory(['name' => 'Test feeds']);
 	check(true, is_int($categoryId) && $categoryId > 0, 'Create category');
+	$otherCategoryId = $categoryDao->addCategory(['name' => 'Other &amp; &lt;feeds&gt;']);
+	check(true, is_int($otherCategoryId) && $otherCategoryId > 0, 'Create second category');
+	$emptyCategoryId = $categoryDao->addCategory(['name' => 'Empty test category']);
+	check(true, is_int($emptyCategoryId) && $emptyCategoryId > 0, 'Create empty category');
 	$feedDao = FreshRSS_Factory::createFeedDao();
-	$makeFeed = static function (string $slug, string $name) use ($feedDao, $categoryId): FreshRSS_Feed {
+	$makeFeed = static function (string $slug, string $name, ?int $category = null) use ($feedDao, $categoryId): FreshRSS_Feed {
+		$category ??= $categoryId;
 		$feed = new FreshRSS_Feed('https://example.org/' . $slug);
 		$feed->_name($name);
-		$feed->_categoryId($categoryId);
+		$feed->_categoryId($category);
 		$id = $feedDao->addFeed([
 			'url' => $feed->url(),
 			'kind' => $feed->kind(),
-			'category' => $categoryId,
+			'category' => $category,
 			'name' => $name,
 			'website' => '',
 			'description' => '',
@@ -93,7 +98,9 @@ register_shutdown_function(static function () use ($scratch, &$checkSavedSetting
 		return $feed;
 	};
 	$selected = $makeFeed('selected', 'Sample &amp; &lt;feed&gt;');
-	$excluded = $makeFeed('excluded', 'Excluded feed');
+	$excluded = $makeFeed('excluded', 'Excluded feed', $otherCategoryId);
+	$defaultCategoryId = FreshRSS_CategoryDAO::DEFAULTCATEGORYID;
+	$defaultFeed = $makeFeed('default', 'Feed in the default category', $defaultCategoryId);
 
 	$startExtension = static function (): EntityExorcistExtension {
 		Minz_ExtensionManager::init();
@@ -121,9 +128,15 @@ register_shutdown_function(static function () use ($scratch, &$checkSavedSetting
 	};
 	$extension = $setConfig([$selected->id()]);
 	$extension->handleConfigureAction();
-	check(true, isset($extension->feeds[$selected->id()], $extension->feeds[$excluded->id()]), 'List real feed IDs');
+	check($selected->id(), $extension->categories[$categoryId]->feeds()[0]->id(), 'Feed in selected category');
+	check($excluded->id(), $extension->categories[$otherCategoryId]->feeds()[0]->id(), 'Feed in another category');
+	check($defaultFeed->id(), $extension->categories[$defaultCategoryId]->feeds()[0]->id(), 'Feed in default category');
+	check(false, isset($extension->categories[$emptyCategoryId]), 'Skip empty category');
 	$form = $extension->getConfigureView();
 	check(true, str_contains($form, 'name="_csrf"'), 'Native CSRF field');
+	check(3, substr_count($form, '<details class="entity-exorcist-category"'), 'One section per nonempty category');
+	check(1, preg_match('/<details class="entity-exorcist-category" open>\s*<summary>\s*Test feeds\s*<small>\(1\)<\/small>/', $form), 'Selected category starts expanded');
+	check(true, str_contains($form, 'Other &amp; &lt;feeds&gt;'), 'Category name is escaped');
 	check(true, str_contains($form, 'value="' . $selected->id() . '" checked'), 'Selected checkbox');
 	check(false, str_contains($form, 'value="' . $excluded->id() . '" checked'), 'Excluded checkbox');
 	check(true, str_contains($form, 'Sample &amp; &lt;feed&gt;'), 'Feed label is escaped');

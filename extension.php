@@ -6,8 +6,8 @@ final class EntityExorcistExtension extends Minz_Extension {
 	private const MIN_VERSION = '1.29.0';
 	private const TEXT_FLAGS = ENT_QUOTES | ENT_SUBSTITUTE | ENT_HTML401;
 
-	/** @var array<int,FreshRSS_Feed> */
-	public array $feeds = [];
+	/** @var array<int,FreshRSS_Category> */
+	public array $categories = [];
 
 	public static function isSupported(): bool {
 		return version_compare(FRESHRSS_VERSION, self::MIN_VERSION, '>=');
@@ -44,14 +44,18 @@ final class EntityExorcistExtension extends Minz_Extension {
 			return;
 		}
 
-		$this->feeds = FreshRSS_Factory::createFeedDao()->listFeeds();
 		if (!Minz_Request::isPost()) {
+			$this->categories = array_filter(
+				FreshRSS_Factory::createCategoryDao()->listSortedCategories(),
+				static fn (FreshRSS_Category $category): bool => $category->feeds() !== [],
+			);
 			return;
 		}
 
+		$feeds = FreshRSS_Factory::createFeedDao()->listFeeds();
 		$selected = array_fill_keys(Minz_Request::paramArrayString('entity_exorcist_feeds'), true);
 		$this->setUserConfigurationValue(self::CONFIG_KEY, [
-			'feed_ids' => array_keys(array_intersect_key($this->feeds, $selected)),
+			'feed_ids' => array_keys(array_intersect_key($feeds, $selected)),
 			'normalize_nbsp' => Minz_Request::paramString('entity_exorcist_nbsp') === '1',
 		]);
 		Minz_Request::good(_t('feedback.conf.updated'), [
