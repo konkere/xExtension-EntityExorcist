@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<opml version="2.0" xmlns:frss="https://freshrss.org/opml">
+  <head>
+    <title>Entity Exorcist live test</title>
+  </head>
+  <body>
+    <outline type="rss" text="HorrorZone — Entity Exorcist test"
+             xmlUrl="https://horrorzone.ru/feed"
+             frss:priority="feed" frss:ttl="-3600" />
+  </body>
+</opml>

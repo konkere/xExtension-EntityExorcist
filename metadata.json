@@ -1,0 +1,8 @@
+{
+	"name": "Entity Exorcist",
+	"author": "Konkere",
+	"description": "Exorcises malformed HTML entities from RSS article titles.",
+	"version": "0.1.0",
+	"entrypoint": "EntityExorcist",
+	"type": "user"
+}
